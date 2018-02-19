@@ -2,7 +2,7 @@ import random
 from django_faker.guessers import Name
 from django.db.models.fields import *
 from django.db.models import ForeignKey, ManyToManyField, OneToOneField, ImageField
-
+from django.utils.timezone import get_current_timezone
 
 class FieldTypeGuesser(object):
 
@@ -27,8 +27,7 @@ class FieldTypeGuesser(object):
                 return lambda x: generator.random_element(field.choices)[0]
             return lambda x: generator.text(field.max_length) if field.max_length >= 5 else generator.word()
         if isinstance(field, TextField): return lambda x: generator.text()
-
-        if isinstance(field, DateTimeField): return lambda x: generator.date_time()
+        if isinstance(field, DateTimeField): return lambda x: generator.date_time(tzinfo=get_current_timezone())
         if isinstance(field, DateField): return lambda x: generator.date()
         if isinstance(field, TimeField): return lambda x: generator.time()
 

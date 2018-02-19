@@ -26,7 +26,8 @@ def configure():
                 'APP_DIRS': True,
                 'OPTIONS': {},
             },
-]
+        ],
+        USE_TZ=True
     )
 
 if not settings.configured: configure()

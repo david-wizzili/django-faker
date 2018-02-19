@@ -1,4 +1,5 @@
 import re
+from django.utils.timezone import get_current_timezone
 
 class Name(object):
     def __init__(self, generator):
@@ -15,7 +16,7 @@ class Name(object):
         name = name.lower()
         generator = self.generator
         if re.findall(r'^is[_A-Z]', name): return lambda x:generator.boolean()
-        if re.findall(r'(_a|A)t$', name): return lambda x:generator.date_time()
+        if re.findall(r'(_a|A)t$', name): return lambda x:generator.date_time(get_current_timezone())
 
         if name in ('first_name','firstname'): return lambda x: generator.first_name()
         if name in ('last_name','lastname'): return lambda x: generator.last_name()
