@@ -16,19 +16,19 @@ class FieldTypeGuesser(object):
 
         generator = self.generator
         if isinstance(field, BooleanField): return lambda x: generator.boolean()
-        if isinstance(field, NullBooleanField): return lambda x: generator.nullBoolean()
+        if isinstance(field, NullBooleanField): return lambda x: generator.null_boolean()
         if isinstance(field, DecimalField): return lambda x: generator.pydecimal(rightDigits=field.decimal_places)
-        if isinstance(field, SmallIntegerField): return lambda x: generator.randomInt(0,65535)
-        if isinstance(field, IntegerField): return lambda x: generator.randomInt(0,4294967295)
-        if isinstance(field, BigIntegerField): return lambda x: generator.randomInt(0,18446744073709551615)
+        if isinstance(field, SmallIntegerField): return lambda x: generator.random_int(0,65535)
+        if isinstance(field, IntegerField): return lambda x: generator.random_int(0,4294967295)
+        if isinstance(field, BigIntegerField): return lambda x: generator.random_int(0,18446744073709551615)
         if isinstance(field, FloatField): return lambda x: generator.pyfloat()
         if isinstance(field, CharField):
             if field.choices:
-                return lambda x: generator.randomElement(field.choices)[0]
+                return lambda x: generator.random_element(field.choices)[0]
             return lambda x: generator.text(field.max_length) if field.max_length >= 5 else generator.word()
         if isinstance(field, TextField): return lambda x: generator.text()
 
-        if isinstance(field, DateTimeField): return lambda x: generator.dateTime()
+        if isinstance(field, DateTimeField): return lambda x: generator.date_time()
         if isinstance(field, DateField): return lambda x: generator.date()
         if isinstance(field, TimeField): return lambda x: generator.time()
 
@@ -62,7 +62,7 @@ class ModelPopulator(object):
         #            yield field.name, getattr(self, field.name)
             fieldName = field.name
             if isinstance(field, (ForeignKey,ManyToManyField,OneToOneField)):
-                relatedModel = field.rel.to
+                relatedModel = field.rel.to if hasattr(field, 'rel') else field.remote_field.model
 
                 def build_relation(inserted):
                     if relatedModel in inserted and inserted[relatedModel]:

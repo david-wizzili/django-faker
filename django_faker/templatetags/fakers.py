@@ -1,6 +1,6 @@
 from inspect import getargspec
 from django import template
-from django.template.base import TagHelperNode, TemplateSyntaxError, parse_bits
+from django.template.library import TagHelperNode, TemplateSyntaxError, parse_bits
 
 register = template.Library()
 
@@ -13,10 +13,12 @@ def optional_assignment_tag(func=None, takes_context=None, name=None):
     """
     def dec(func):
         params, varargs, varkw, defaults = getargspec(func)
+        kwonly = {}
+        kwonly_defaults = {}
 
         class AssignmentNode(TagHelperNode):
             def __init__(self, takes_context, args, kwargs, target_var=None):
-                super(AssignmentNode, self).__init__(takes_context, args, kwargs)
+                super(AssignmentNode, self).__init__(func, takes_context, args, kwargs)
                 self.target_var = target_var
 
             def render(self, context):
@@ -39,7 +41,7 @@ def optional_assignment_tag(func=None, takes_context=None, name=None):
                 target_var = bits[-1]
                 bits = bits[:-2]
             args, kwargs = parse_bits(parser, bits, params,
-                varargs, varkw, defaults, takes_context, function_name)
+                varargs, varkw, defaults, kwonly, kwonly_defaults, takes_context, function_name)
             return AssignmentNode(takes_context, args, kwargs, target_var)
 
         compile_func.__doc__ = func.__doc__

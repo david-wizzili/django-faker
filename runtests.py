@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import sys
-
 from django.conf import settings
 
 def configure():
@@ -21,9 +20,18 @@ def configure():
             ),
         SITE_ID=1,
         SECRET_KEY=fake.sha1(),
+        TEMPLATES = [
+            {
+                'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                'APP_DIRS': True,
+                'OPTIONS': {},
+            },
+]
     )
 
 if not settings.configured: configure()
+import django
+django.setup()
 
 
 from django.test.utils import get_runner

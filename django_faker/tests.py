@@ -3,7 +3,7 @@ from django_faker.populator import Populator
 from django_faker import Faker as DjangoFaker
 
 from django.db import models
-from django.utils import unittest
+from django.test import TestCase
 from django.template import Context, TemplateSyntaxError
 from django.template import Template
 
@@ -27,7 +27,7 @@ class Player(models.Model):
     score= models.BigIntegerField()
     last_login_at= models.DateTimeField()
 
-    game= models.ForeignKey(Game)
+    game= models.ForeignKey(Game, on_delete=models.CASCADE)
 
 
 class Action(models.Model):
@@ -46,11 +46,11 @@ class Action(models.Model):
     name= models.CharField(max_length=4, choices=ACTIONS)
     executed_at= models.DateTimeField()
 
-    actor= models.ForeignKey(Player,related_name='actions', null=True)
-    target= models.ForeignKey(Player, related_name='enemy_actions+', null=True)
+    actor= models.ForeignKey(Player,related_name='actions', null=True, on_delete=models.CASCADE)
+    target= models.ForeignKey(Player, related_name='enemy_actions+', null=True, on_delete=models.CASCADE)
 
 
-class PopulatorTestCase(unittest.TestCase):
+class PopulatorTestCase(TestCase):
 
     def testPopulation(self):
 
@@ -83,7 +83,7 @@ class PopulatorTestCase(unittest.TestCase):
 
         populator.addEntity(Game,5)
         populator.addEntity(Player, 10, {
-            'score': lambda x: fake.randomInt(0,1000),
+            'score': lambda x: fake.random_int(0,1000),
             'nickname': lambda x: fake.email()
         })
         populator.addEntity(Action,30)
@@ -96,7 +96,7 @@ class PopulatorTestCase(unittest.TestCase):
         self.assertTrue( any([0 <= p.score <= 1000 and '@' in p.nickname for p in Player.objects.all() ]) )
 
 
-class TemplateTagsTestCase(unittest.TestCase):
+class TemplateTagsTestCase(TestCase):
 
     @staticmethod
     def render( template, context=None ):
@@ -110,7 +110,7 @@ class TemplateTagsTestCase(unittest.TestCase):
         self.assertNotEqual(self.render("{% fake 'name' as myname %}{{ myname }}"),"")
 
     def testSimpleFakeTagWithArguments(self):
-        self.assertNotEqual(self.render("{% fake 'dateTimeBetween' '-10d' as mydate %}{{ mydate }}"),"")
+        self.assertNotEqual(self.render("{% fake 'date_time_between' '-10d' as mydate %}{{ mydate }}"),"")
 
     def testSimpleFakeTagFormatterNotFoundRaisesException(self):
         with self.assertRaises(AttributeError):
@@ -122,12 +122,12 @@ class TemplateTagsTestCase(unittest.TestCase):
 
     # do_fake_filter: fake
     def testFakeFilterTag(self):
-        self.assertIn(self.render("{{ 'randomElement'|fake:'testString' }}"),'testString')
+        self.assertIn(self.render("{{ 'random_element'|fake:'testString' }}"),'testString')
 
     def testFakeFilterWithValueFromContext(self):
         mylist = [100,200,300]
-        rendered = self.render("{{ 'randomElement'|fake:mylist }}", {'mylist': mylist})
-        self.assertIn(rendered, [unicode(el) for el in mylist])
+        rendered = self.render("{{ 'random_element'|fake:mylist }}", {'mylist': mylist})
+        self.assertIn(rendered, [str(el) for el in mylist])
 
     def testFakeFilterFormatterNotFoundRaisesException(self):
         with self.assertRaises(AttributeError):
@@ -151,20 +151,20 @@ class TemplateTagsTestCase(unittest.TestCase):
     def testFullXmlContact(self):
         self.assertTrue(self.render("""<?xml version="1.0" encoding="UTF-8"?>
 <contacts>
-    {% fake 'randomInt' 10 20 as times %}
+    {% fake 'random_int' 10 20 as times %}
     {% for i in 10|get_range %}
-    <contact firstName="{% fake 'firstName' %}" lastName="{% fake 'lastName' %}" email="{% fake 'email' %}"/>
-        <phone number="{% fake 'phoneNumber' %}"/>
+    <contact firstName="{% fake 'first_name' %}" lastName="{% fake 'last_name' %}" email="{% fake 'email' %}"/>
+        <phone number="{% fake 'phone_number' %}"/>
         {% if 'boolean'|fake:25 %}
-        <birth date="{{ 'dateTimeThisCentury'|fake|date:"D d M Y" }}" place="{% fake 'city' %}"/>
+        <birth date="{{ 'date_time_this_century'|fake|date:"D d M Y" }}" place="{% fake 'city' %}"/>
         {% endif %}
         <address>
-            <street>{% fake 'streetAddress' %}</street>
+            <street>{% fake 'street_address' %}</street>
             <city>{% fake 'city' %}</city>
             <postcode>{% fake 'postcode' %}</postcode>
             <state>{% fake 'state' %}</state>
         </address>
-        <company name="{% fake 'company' %}" catchPhrase="{% fake 'catchPhrase' %}">
+        <company name="{% fake 'company' %}" catchPhrase="{% fake 'catch_phrase' %}">
         {% if 'boolean'|fake:25 %}
             <offer>{% fake 'bs' %}</offer>
         {% endif %}
@@ -185,7 +185,7 @@ class TemplateTagsTestCase(unittest.TestCase):
 """))
 
 
-class APIDjangoFakerTestCase(unittest.TestCase):
+class APIDjangoFakerTestCase(TestCase):
 
     def testDjangoFakerSingleton(self):
 
