@@ -119,7 +119,13 @@ class Populator(object):
         self.entities = {}
         self.quantities = {}
         self.orders = []
-
+    def reset(self):
+        """
+        :param generator: Generator
+        """
+        self.entities = {}
+        self.quantities = {}
+        self.orders = []
 
     def addEntity(self, model, number, customFieldFormatters=None):
         """
