@@ -57,7 +57,7 @@ class ModelPopulator(object):
         nameGuesser = Name(generator)
         fieldTypeGuesser = FieldTypeGuesser(generator)
 
-        for field in model._meta.fields:
+        for field in model._meta.fields + model._meta.many_to_many:
         #            yield field.name, getattr(self, field.name)
             fieldName = field.name
             if isinstance(field, (ForeignKey,ManyToManyField,OneToOneField)):
@@ -101,7 +101,13 @@ class ModelPopulator(object):
         for field, format in self.fieldFormatters.items():
             if format:
                 value = format(insertedEntities) if hasattr(format,'__call__') else format
-                setattr(obj, field, value)
+                field_obj = obj._meta.get_field(field)
+                if isinstance(field_obj, ManyToManyField):
+                    #We need an ID to be able to continue here
+                    obj.save(using=using)
+                    getattr(obj, field).add(value)
+                else:
+                    setattr(obj, field, value)
 
         obj.save(using=using)
 
@@ -141,6 +147,7 @@ class Populator(object):
             model = ModelPopulator(model)
 
         model.fieldFormatters = model.guessFieldFormatters( self.generator )
+
         if customFieldFormatters:
             model.fieldFormatters.update(customFieldFormatters)
 
