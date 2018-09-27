@@ -38,6 +38,7 @@ class FieldTypeGuesser(object):
             return lambda x: getattr(generator,protocolIp)()
         if isinstance(field, EmailField): return lambda x: generator.email()
         if isinstance(field, ImageField): return lambda x: None
+        if isinstance(field, BinaryField): return lambda x: None
 
         raise AttributeError(field)
 
